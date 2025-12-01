@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, Image as ImageIcon, Sliders, Wand2, ScanSearch, Download, Undo2, Globe, Sparkles, Droplet, Eraser, LayoutGrid, ArrowLeft, Plus, Save, Trash2, X } from 'lucide-react';
+import { Upload, Image as ImageIcon, Sliders, Wand2, ScanSearch, Download, Undo2, Redo2, Globe, Sparkles, Droplet, Eraser, LayoutGrid, ArrowLeft, Plus, Save, Trash2, X } from 'lucide-react';
 import { Language, EditMode, ImageAdjustments, PresetFilter } from './types';
 import { TRANSLATIONS, DEFAULT_ADJUSTMENTS, PRESET_FILTERS } from './constants';
 import { identifyImageContent, editImageWithAI } from './services/geminiService';
@@ -38,8 +38,10 @@ const App: React.FC = () => {
   // Default to gallery view to serve as the "Primary Face"
   const [viewMode, setViewMode] = useState<'editor' | 'gallery'>('gallery');
   
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [currentImage, setCurrentImage] = useState<string | null>(null);
+  // History System
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
   const [adjustments, setAdjustments] = useState<ImageAdjustments>(DEFAULT_ADJUSTMENTS);
   const [activeMode, setActiveMode] = useState<EditMode>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +71,30 @@ const App: React.FC = () => {
   
   const isRTL = lang === 'ar';
 
+  const currentImage = history[historyIndex] || null;
+
   // Handlers
+  const addToHistory = (newImage: string) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newImage);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1);
+      setAdjustments(DEFAULT_ADJUSTMENTS); // Reset sliders on undo to prevent visual conflicts
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(historyIndex + 1);
+      setAdjustments(DEFAULT_ADJUSTMENTS);
+    }
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -78,7 +103,6 @@ const App: React.FC = () => {
         const result = e.target?.result as string;
         // Add to gallery immediately
         setGallery(prev => [result, ...prev]);
-        
         // Open in editor
         openInEditor(result);
       };
@@ -89,8 +113,8 @@ const App: React.FC = () => {
   };
 
   const openInEditor = (imgSrc: string) => {
-    setOriginalImage(imgSrc);
-    setCurrentImage(imgSrc);
+    setHistory([imgSrc]);
+    setHistoryIndex(0);
     setAdjustments(DEFAULT_ADJUSTMENTS);
     setIdentifyResult(null);
     setActiveMode('filter'); 
@@ -150,7 +174,7 @@ const App: React.FC = () => {
   const handleDownload = () => {
     if (canvasRef.current) {
       const link = document.createElement('a');
-      link.download = `lumina-edit-${Date.now()}.png`;
+      link.download = `firsial-edit-${Date.now()}.png`;
       link.href = canvasRef.current.toDataURL('image/png');
       link.click();
     }
@@ -161,6 +185,7 @@ const App: React.FC = () => {
     setIsLoading(true);
     setIdentifyResult(null);
     try {
+      // Use current visual state (including filters)
       const imageData = canvasRef.current?.toDataURL('image/png') || currentImage;
       const result = await identifyImageContent(imageData, lang);
       setIdentifyResult(result);
@@ -178,9 +203,10 @@ const App: React.FC = () => {
       const imageData = canvasRef.current?.toDataURL('image/png') || currentImage;
       const newImage = await editImageWithAI(imageData, aiPrompt);
       
-      setCurrentImage(newImage);
+      addToHistory(newImage);
       setAdjustments(DEFAULT_ADJUSTMENTS); 
       setAiPrompt('');
+      
       // Auto-save result to gallery so it's not lost
       setGallery(prev => [newImage, ...prev]);
     } catch (error) {
@@ -199,9 +225,11 @@ const App: React.FC = () => {
       const fullPrompt = `Remove the ${erasePrompt} from this image and fill in the background seamlessly.`;
       
       const newImage = await editImageWithAI(imageData, fullPrompt);
-      setCurrentImage(newImage);
+      
+      addToHistory(newImage);
       setAdjustments(DEFAULT_ADJUSTMENTS);
       setErasePrompt('');
+      
       setGallery(prev => [newImage, ...prev]);
     } catch (error) {
       console.error(error);
@@ -216,9 +244,12 @@ const App: React.FC = () => {
   };
 
   const resetImage = () => {
-    setCurrentImage(originalImage);
-    setAdjustments(DEFAULT_ADJUSTMENTS);
-    setIdentifyResult(null);
+    // Resets to initial upload
+    if (history.length > 0) {
+      setHistoryIndex(0);
+      setAdjustments(DEFAULT_ADJUSTMENTS);
+      setIdentifyResult(null);
+    }
   };
 
   return (
@@ -237,6 +268,29 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-3">
+             {viewMode === 'editor' && (
+                <div className="flex items-center gap-2 mr-2 ml-2 border-r border-l border-gray-700 px-2">
+                   <Button 
+                      variant="ghost" 
+                      onClick={handleUndo} 
+                      disabled={historyIndex <= 0}
+                      className="p-2"
+                      title={t('undo')}
+                   >
+                     <Undo2 size={18} />
+                   </Button>
+                   <Button 
+                      variant="ghost" 
+                      onClick={handleRedo} 
+                      disabled={historyIndex >= history.length - 1}
+                      className="p-2"
+                      title={t('redo')}
+                   >
+                     <Redo2 size={18} />
+                   </Button>
+                </div>
+             )}
+             
              {viewMode === 'editor' && (
                 <Button variant="secondary" onClick={() => setViewMode('gallery')} className="text-sm">
                   <ArrowLeft size={16} />
@@ -297,7 +351,7 @@ const App: React.FC = () => {
                     <div className="flex gap-2 w-full">
                        <a 
                         href={src} 
-                        download={`lumina-project-${i}.png`} 
+                        download={`firsial-project-${i}.png`} 
                         className="flex-1 flex items-center justify-center p-2 bg-dark-800 hover:bg-white hover:text-black rounded-lg transition-colors text-white border border-gray-600"
                         title={t('download')}
                        >
@@ -421,7 +475,7 @@ const App: React.FC = () => {
 
               <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
                 {/* Panel Content Logic */}
-                {activeMode === 'filter' && (
+                {activeMode === 'filter' && currentImage && (
                   <div className="grid grid-cols-2 gap-3">
                     {PRESET_FILTERS.map((filter) => (
                       <button
@@ -432,7 +486,7 @@ const App: React.FC = () => {
                         <div 
                           className="w-full h-full bg-cover bg-center transition-transform group-hover:scale-110"
                           style={{ 
-                            backgroundImage: `url(${originalImage})`,
+                            backgroundImage: `url(${currentImage})`,
                             filter: `
                               brightness(${filter.adjustments.brightness}%) 
                               contrast(${filter.adjustments.contrast}%) 
@@ -522,13 +576,15 @@ const App: React.FC = () => {
 };
 
 // Helper UI Component for the Sidebar
-const TooltipButton = ({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) => (
+const TooltipButton = ({ active, onClick, icon, label, disabled = false, className = '', title }: { active?: boolean, onClick: () => void, icon: React.ReactNode, label?: string, disabled?: boolean, className?: string, title?: string }) => (
   <button 
     onClick={onClick}
-    className={`w-full md:w-20 p-3 md:py-4 flex flex-col items-center justify-center gap-1 rounded-xl transition-all ${active ? 'bg-brand-600 text-white shadow-lg shadow-brand-900/50' : 'text-gray-400 hover:bg-dark-800 hover:text-white'}`}
+    disabled={disabled}
+    title={title}
+    className={`w-full md:w-20 p-3 md:py-4 flex flex-col items-center justify-center gap-1 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${active ? 'bg-brand-600 text-white shadow-lg shadow-brand-900/50' : 'text-gray-400 hover:bg-dark-800 hover:text-white'} ${className}`}
   >
     {icon}
-    <span className="text-[10px] font-medium text-center leading-tight">{label}</span>
+    {label && <span className="text-[10px] font-medium text-center leading-tight">{label}</span>}
   </button>
 );
 

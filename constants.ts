@@ -10,7 +10,7 @@ export const DEFAULT_ADJUSTMENTS: ImageAdjustments = {
 };
 
 export const TRANSLATIONS: TranslationDictionary = {
-  appTitle: { en: 'Lumina Studio', ar: 'ستوديو لومينا' },
+  appTitle: { en: 'Firsial Studio', ar: 'ستوديو فيرسيال' },
   uploadTitle: { en: 'Start New Project', ar: 'ابدأ مشروعاً جديداً' },
   uploadDesc: { en: 'Upload a photo to begin editing', ar: 'ارفع صورة للبدء في التعديل' },
   tools: { en: 'Tools', ar: 'الأدوات' },
@@ -20,7 +20,9 @@ export const TRANSLATIONS: TranslationDictionary = {
   identify: { en: 'Identify', ar: 'تعرف' },
   erase: { en: 'Magic Eraser', ar: 'الممحاة السحرية' },
   download: { en: 'Download', ar: 'تحميل' },
-  reset: { en: 'Reset', ar: 'إعادة ضبط' },
+  reset: { en: 'Reset All', ar: 'إعادة ضبط الكل' },
+  undo: { en: 'Undo', ar: 'تراجع' },
+  redo: { en: 'Redo', ar: 'إعادة' },
   brightness: { en: 'Brightness', ar: 'السطوع' },
   contrast: { en: 'Contrast', ar: 'التباين' },
   saturation: { en: 'Saturation', ar: 'التشبع' },

@@ -48,11 +48,23 @@ export const editImageWithAI = async (base64Image: string, instruction: string):
     // Using gemini-2.5-flash-image for image-to-image/editing tasks
     const model = 'gemini-2.5-flash-image';
 
+    // Enhance prompt intelligence
+    const smartPrompt = `
+      You are an expert AI photo editor in Firsial Studio.
+      The user has provided the following instruction: "${instruction}".
+      
+      Guidelines:
+      1. If the instruction is vague (e.g., "make it better", "cool effect"), creatively improve the image aesthetics (lighting, contrast, sharpness) or apply a cinematic style.
+      2. If the instruction is specific (e.g., "remove the cat"), follow it precisely.
+      3. Maintain high visual quality and resolution.
+      4. Ensure the output is natural and seamless.
+    `;
+
     const response = await ai.models.generateContent({
       model,
       contents: {
         parts: [
-          { text: instruction },
+          { text: smartPrompt },
           {
             inlineData: {
               mimeType: getMimeType(base64Image),
