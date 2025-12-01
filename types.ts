@@ -7,7 +7,7 @@ export interface TranslationDictionary {
   };
 }
 
-export type EditMode = 'adjust' | 'filter' | 'ai-edit' | 'identify' | 'crop' | null;
+export type EditMode = 'adjust' | 'filter' | 'ai-edit' | 'identify' | 'erase' | null;
 
 export interface ImageAdjustments {
   brightness: number; // 0-200, default 100
