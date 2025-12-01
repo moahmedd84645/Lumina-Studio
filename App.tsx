@@ -222,8 +222,8 @@ const App: React.FC = () => {
       const imageData = canvasRef.current?.toDataURL('image/png') || currentImage;
       const result = await identifyImageContent(imageData, lang);
       setIdentifyResult(result);
-    } catch (error) {
-      setIdentifyResult(t('error'));
+    } catch (error: any) {
+      setIdentifyResult(error.message || t('error'));
     } finally {
       setIsLoading(false);
     }
@@ -242,9 +242,9 @@ const App: React.FC = () => {
       
       // Auto-save result to gallery so it's not lost
       setGallery(prev => [newImage, ...prev]);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert(t('error'));
+      alert(error.message || t('error'));
     } finally {
       setIsLoading(false);
     }
@@ -264,9 +264,9 @@ const App: React.FC = () => {
       setErasePrompt('');
       
       setGallery(prev => [newImage, ...prev]);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert(t('error'));
+      alert(error.message || t('error'));
     } finally {
       setIsLoading(false);
     }

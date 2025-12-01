@@ -11,9 +11,17 @@ const getMimeType = (base64Str: string) => {
   return match ? match[1] : 'image/png';
 };
 
+const getAIClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("API Configuration Error: API_KEY is missing. Please check your deployment settings.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
+
 export const identifyImageContent = async (base64Image: string, lang: Language): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = getAIClient();
     const model = 'gemini-2.5-flash';
 
     const prompt = lang === 'ar' 
@@ -36,15 +44,16 @@ export const identifyImageContent = async (base64Image: string, lang: Language):
     });
 
     return response.text || (lang === 'ar' ? 'لم يتم العثور على وصف.' : 'No description found.');
-  } catch (error) {
+  } catch (error: any) {
     console.error("Identify Error:", error);
-    throw error;
+    if (error.message?.includes("API_KEY")) throw error;
+    throw new Error("Failed to analyze image. Please try again.");
   }
 };
 
 export const editImageWithAI = async (base64Image: string, instruction: string): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = getAIClient();
     // Using gemini-2.5-flash-image for image-to-image/editing tasks
     const model = 'gemini-2.5-flash-image';
 
@@ -91,9 +100,10 @@ export const editImageWithAI = async (base64Image: string, instruction: string):
       }
     }
     
-    throw new Error("No image generated.");
-  } catch (error) {
+    throw new Error("AI successfully processed the request but returned no image. Try a different instruction.");
+  } catch (error: any) {
     console.error("AI Edit Error:", error);
-    throw error;
+    if (error.message?.includes("API_KEY")) throw error;
+    throw new Error(error.message || "Failed to edit image.");
   }
 };
