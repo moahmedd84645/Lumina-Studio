@@ -75,12 +75,18 @@ export const editImageWithAI = async (base64Image: string, instruction: string):
       }
     });
 
-    // Extract image from response
-    // The response might contain text and/or inlineData
-    if (response.candidates && response.candidates[0].content.parts) {
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+    // Extract image from response with robust safety checks for TypeScript
+    const candidates = response.candidates;
+    if (candidates && candidates.length > 0) {
+      const firstCandidate = candidates[0];
+      const content = firstCandidate.content;
+      const parts = content?.parts;
+      
+      if (parts) {
+        for (const part of parts) {
+          if (part.inlineData) {
+            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          }
         }
       }
     }
