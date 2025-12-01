@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, Image as ImageIcon, Sliders, Wand2, ScanSearch, Download, Undo2, Redo2, Globe, Sparkles, Droplet, Eraser, LayoutGrid, ArrowLeft, Plus, Save, Trash2, X } from 'lucide-react';
+import { Image as ImageIcon, Sliders, Wand2, ScanSearch, Download, Undo2, Redo2, Globe, Sparkles, Droplet, Eraser, LayoutGrid, ArrowLeft, Plus, Save, Trash2, X, AlertCircle } from 'lucide-react';
 import { Language, EditMode, ImageAdjustments, PresetFilter } from './types';
 import { TRANSLATIONS, DEFAULT_ADJUSTMENTS, PRESET_FILTERS } from './constants';
 import { identifyImageContent, editImageWithAI } from './services/geminiService';
@@ -32,6 +32,19 @@ const SliderControl: React.FC<{
   </div>
 );
 
+// Helper UI Component for the Sidebar
+const TooltipButton = ({ active, onClick, icon, label, disabled = false, className = '', title }: { active?: boolean, onClick: () => void, icon: React.ReactNode, label?: string, disabled?: boolean, className?: string, title?: string }) => (
+  <button 
+    onClick={onClick}
+    disabled={disabled}
+    title={title}
+    className={`w-full md:w-20 p-3 md:py-4 flex flex-col items-center justify-center gap-1 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${active ? 'bg-brand-600 text-white shadow-lg shadow-brand-900/50' : 'text-gray-400 hover:bg-dark-800 hover:text-white'} ${className}`}
+  >
+    {icon}
+    {label && <span className="text-[10px] font-medium text-center leading-tight">{label}</span>}
+  </button>
+);
+
 const App: React.FC = () => {
   // State
   const [lang, setLang] = useState<Language>('en');
@@ -57,16 +70,28 @@ const App: React.FC = () => {
   
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  // Safe translation helper
-  const t = (key: string) => {
-    // Strictly safe access
-    if (TRANSLATIONS && TRANSLATIONS[key] && TRANSLATIONS[key][lang]) {
-      return TRANSLATIONS[key][lang];
+  // --- CRASH-PROOF TRANSLATION HELPER ---
+  const t = (key: string): string => {
+    try {
+      // 1. Check if TRANSLATIONS object exists
+      if (!TRANSLATIONS) return key;
+
+      // 2. Check if the specific key exists
+      const entry = TRANSLATIONS[key];
+      if (!entry) {
+        // Fallback: Return key name if translation missing
+        console.warn(`Missing translation for key: "${key}"`);
+        return key;
+      }
+
+      // 3. Return language specific string, fallback to 'en', then fallback to key
+      return entry[lang] || entry['en'] || key;
+    } catch (err) {
+      console.error("Translation error", err);
+      return key;
     }
-    return key; // Fallback to key name if translation missing
   };
   
   const isRTL = lang === 'ar';
@@ -125,7 +150,6 @@ const App: React.FC = () => {
     if (canvasRef.current) {
       const newDataUrl = canvasRef.current.toDataURL('image/png');
       setGallery(prev => [newDataUrl, ...prev]);
-      // Optional: Flash success message or notification
     }
   };
 
@@ -574,18 +598,5 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-// Helper UI Component for the Sidebar
-const TooltipButton = ({ active, onClick, icon, label, disabled = false, className = '', title }: { active?: boolean, onClick: () => void, icon: React.ReactNode, label?: string, disabled?: boolean, className?: string, title?: string }) => (
-  <button 
-    onClick={onClick}
-    disabled={disabled}
-    title={title}
-    className={`w-full md:w-20 p-3 md:py-4 flex flex-col items-center justify-center gap-1 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${active ? 'bg-brand-600 text-white shadow-lg shadow-brand-900/50' : 'text-gray-400 hover:bg-dark-800 hover:text-white'} ${className}`}
-  >
-    {icon}
-    {label && <span className="text-[10px] font-medium text-center leading-tight">{label}</span>}
-  </button>
-);
 
 export default App;
