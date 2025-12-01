@@ -11,8 +11,8 @@ export const DEFAULT_ADJUSTMENTS: ImageAdjustments = {
 
 export const TRANSLATIONS: TranslationDictionary = {
   appTitle: { en: 'Lumina Studio', ar: 'ستوديو لومينا' },
-  uploadTitle: { en: 'Upload Photo', ar: 'رفع صورة' },
-  uploadDesc: { en: 'Drag & drop or click to upload', ar: 'اسحب وأفلت أو انقر للرفع' },
+  uploadTitle: { en: 'Start New Project', ar: 'ابدأ مشروعاً جديداً' },
+  uploadDesc: { en: 'Upload a photo to begin editing', ar: 'ارفع صورة للبدء في التعديل' },
   tools: { en: 'Tools', ar: 'الأدوات' },
   adjust: { en: 'Adjust', ar: 'تعديل' },
   filters: { en: 'Filters', ar: 'فلاتر' },
@@ -30,6 +30,8 @@ export const TRANSLATIONS: TranslationDictionary = {
   identifyPrompt: { en: 'Analyzing image...', ar: 'جاري تحليل الصورة...' },
   identifyResult: { en: 'Identification Result', ar: 'نتيجة التعرف' },
   aiPromptPlaceholder: { en: 'Describe what to change...', ar: 'صف ما تريد تغييره...' },
+  eraseDesc: { en: 'Use AI to remove unwanted objects from your photo.', ar: 'استخدم الذكاء الاصطناعي لحذف العناصر غير المرغوب فيها.' },
+  erasePrompt: { en: 'Element to Remove', ar: 'العنصر المراد حذفه' },
   erasePlaceholder: { en: 'What do you want to remove? (e.g. "The red cup")', ar: 'ماذا تريد أن تحذف؟ (مثلاً: "الكوب الأحمر")' },
   eraseBtn: { en: 'Erase Object', ar: 'حذف الكائن' },
   generate: { en: 'Generate', ar: 'توليد' },
@@ -42,12 +44,16 @@ export const TRANSLATIONS: TranslationDictionary = {
   cool: { en: 'Cool', ar: 'بارد' },
   dramatic: { en: 'Dramatic', ar: 'درامي' },
   original: { en: 'Original', ar: 'أصلي' },
-  back: { en: 'Back', ar: 'رجوع' },
-  gallery: { en: 'Photo Gallery', ar: 'معرض الصور' },
-  galleryEmpty: { en: 'No photos yet. Create something!', ar: 'لا توجد صور بعد. اصنع شيئاً!' },
+  back: { en: 'My Studio', ar: 'الاستوديو' },
+  gallery: { en: 'My Studio', ar: 'الاستوديو' },
+  galleryEmpty: { en: 'Your studio is empty. Start creating!', ar: 'الاستوديو فارغ. ابدأ الإبداع!' },
   editor: { en: 'Editor', ar: 'المحرر' },
   error: { en: 'An error occurred', ar: 'حدث خطأ' },
   success: { en: 'Success', ar: 'تم بنجاح' },
+  saveCopy: { en: 'Save to Studio', ar: 'حفظ في الاستوديو' },
+  newProject: { en: 'New Project', ar: 'مشروع جديد' },
+  delete: { en: 'Delete', ar: 'حذف' },
+  continue: { en: 'Edit', ar: 'تعديل' },
 };
 
 export const PRESET_FILTERS: PresetFilter[] = [
