@@ -76,20 +76,29 @@ const App: React.FC = () => {
   const t = (key: string): string => {
     try {
       // 1. Check if TRANSLATIONS object exists
-      if (!TRANSLATIONS) return key;
+      if (!TRANSLATIONS) {
+        console.warn("TRANSLATIONS object is missing");
+        return key;
+      }
 
       // 2. Check if the specific key exists
       const entry = TRANSLATIONS[key];
       if (!entry) {
         // Fallback: Return key name if translation missing
-        console.warn(`Missing translation for key: "${key}"`);
+        // console.warn(`Missing translation for key: "${key}"`);
         return key;
       }
 
       // 3. Return language specific string, fallback to 'en', then fallback to key
-      return entry[lang] || entry['en'] || key;
+      const result = entry[lang];
+      if (result) return result;
+      
+      const fallback = entry['en'];
+      if (fallback) return fallback;
+      
+      return key;
     } catch (err) {
-      console.error("Translation error", err);
+      console.error("Translation error for key:", key, err);
       return key;
     }
   };
